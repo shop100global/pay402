@@ -1,5 +1,5 @@
 {
-    "name": "pay402",
+    "name": "@100pay-hq/pay402",
     "version": "1.0.0",
     "description": "PAY402 payment protocol middleware for Express",
     "main": "dist/index.js",
