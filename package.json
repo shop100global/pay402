@@ -20,7 +20,7 @@
         "express",
         "middleware"
     ],
-    "author": "",
+    "author": "brainyjosh",
     "license": "ISC",
     "devDependencies": {
         "@types/express": "^4.17.21",
