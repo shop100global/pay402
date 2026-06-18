@@ -25,17 +25,19 @@ interface Pay402Context {
     };
     headers: any;
 }
+interface Pay402Price {
+    amount: string;
+    currency: string;
+    symbol: string;
+    type: 'fixed' | 'dynamic';
+}
+type Pay402PriceConfig = Pay402Price | ((req: Pay402Context) => Pay402Price | Promise<Pay402Price>);
 interface Pay402Route {
     name: string;
     description: string;
     path: string;
     method: string;
-    pricing: 'fixed' | 'dynamic';
-    price: (req: Pay402Context) => Promise<{
-        amount: string;
-        currency: string;
-        symbol: string;
-    }>;
+    price: Pay402PriceConfig;
     [key: string]: any;
 }
 export declare const withPay402: (config: Pay402Config) => (req: Request, res: Response, next: NextFunction) => Promise<void | Response<any, Record<string, any>>>;

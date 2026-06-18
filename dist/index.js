@@ -37,6 +37,14 @@ exports.withPay402 = void 0;
 const crypto = __importStar(require("crypto"));
 // @ts-ignore
 const x402_express_1 = require("x402-express");
+// Resolve a route's price into a concrete Pay402Price, supporting both the
+// static-object form and the (possibly async) function form.
+const resolvePrice = async (price, context) => {
+    if (typeof price === 'function') {
+        return await price(context);
+    }
+    return price;
+};
 // Cache for routes hash
 let lastUploadedRoutesHash = null;
 // Function to dynamically extract all route parameters from URL
@@ -116,23 +124,26 @@ const uploadRoutesToRemoteServer = async (config) => {
         return;
     }
     try {
-        // Transform routes to the format expected by the bulk API
-        // The user provided example shows "tools" array with name, description, path, method, pricing
-        const tools = config.routes.map(route => ({
-            name: route.name,
-            description: route.description,
-            path: route.path,
-            method: route.method,
-            pricing: {
-                type: route.pricing === 'fixed' ? 'fixed' : 'per_call', // Mapping logic assumption
-                amount: 0 // This might need to be adjusted based on how pricing is handled in the bulk API vs the dynamic function
-                // The bulk API example shows "amount": 100. 
-                // But our routes have a `price` function. 
-                // If it's dynamic, maybe we send 0 or a placeholder?
-                // The user didn't specify how to map the `price` function to the bulk API `pricing` object fully.
-                // I'll assume we send what we can.
-            }
-        }));
+        // Transform routes to the format expected by the bulk API.
+        // The route's `price` is either a static object (fixed) or a function
+        // (dynamic). For dynamic pricing the amount is only known at request
+        // time, so we send the declared type with a zero placeholder amount.
+        const tools = config.routes.map(route => {
+            const isStatic = typeof route.price !== 'function';
+            const staticPrice = isStatic ? route.price : null;
+            return {
+                name: route.name,
+                description: route.description,
+                path: route.path,
+                method: route.method,
+                pricing: {
+                    type: staticPrice?.type ?? 'dynamic',
+                    amount: staticPrice ? Number(staticPrice.amount) : 0,
+                    currency: staticPrice?.currency,
+                    symbol: staticPrice?.symbol
+                }
+            };
+        });
         const response = await fetch(`https://api.getnano.space/api/apps/${config.nanoAppId}/tools/bulk`, {
             method: 'POST',
             headers: {
@@ -239,11 +250,11 @@ const withPay402 = (config) => {
             // If `route.price` throws, we shouldn't crash.
             let priceResult;
             try {
-                priceResult = await route.price(my_request);
+                priceResult = await resolvePrice(route.price, my_request);
             }
             catch (e) {
                 // If price calculation fails (e.g. missing params for a different route), use default/zero
-                priceResult = { amount: "0", currency: "USD", symbol: "$" };
+                priceResult = { amount: "0", currency: "USD", symbol: "$", type: "fixed" };
             }
             let paymentOptions = {
                 price: `${priceResult.amount}`,

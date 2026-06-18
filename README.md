@@ -14,7 +14,7 @@
 ## Installation
 
 ```bash
-npm install pay402 x402-express
+npm npm i @100pay-hq/pay402 x402-express
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ Create a configuration object for your application. You'll need credentials from
 
 ```typescript
 import express from 'express';
-import { withPay402 } from 'pay402';
+import { withPay402 } from '@100pay-hq/pay402';
 
 const app = express();
 
