@@ -35,7 +35,7 @@ const nanoAppConfig = {
     _100PayApiKey: "your-100pay-api-key", // From 100Pay dashboard
     wallet: "0xYourWalletAddress", // Your 100Pay checkout wallet (EVM or Solana)
     facilitator: {
-        url: "https://x402.org/facilitator", // Optional x402 facilitator endpoint
+        url: "https://facilitator.402.finance", // Optional x402 facilitator endpoint
         apiKey: "your-facilitator-api-key" // Optional
     },
     network: "base", // e.g., "base", "solana"
